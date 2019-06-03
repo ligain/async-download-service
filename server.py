@@ -1,12 +1,15 @@
 import asyncio
-
-from aiohttp import web
-import aiofiles
+import os
 import datetime
 
-CHUNK_SIZE = 120
-CMD_TEMPLATE = 'zip -r - /home/linder/Documents/async-download-service/test_photos/{folder}/'
+import aiofiles
+from aiohttp import web
+from aiohttp.web_exceptions import HTTPNotFound
 
+
+CHUNK_SIZE = 120
+BASE_PHOTOS_PATH = 'test_photos/'
+CMD = 'zip - *'
 INTERVAL_SECS = 1
 
 
@@ -22,13 +25,18 @@ async def uptime_handler(request):
         await asyncio.sleep(INTERVAL_SECS)
 
 
-async def archivate(request):
+async def archive_handler(request):
+    archive_hash = request.match_info['archive_hash']
     response = web.StreamResponse()
 
-    cmd = CMD_TEMPLATE.format(folder='rur2')
+    photos_path = os.path.abspath(os.path.join(BASE_PHOTOS_PATH, archive_hash))
+    if not os.path.exists(photos_path):
+        raise HTTPNotFound
+
     proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE
+        CMD,
+        stdout=asyncio.subprocess.PIPE,
+        cwd=photos_path
     )
 
     response.headers['Content-Disposition'] = 'attachment; filename="archive.zip"'
@@ -42,9 +50,10 @@ async def archivate(request):
     await proc.wait()
 
     await response.write_eof()
+    return response
 
 
-async def handle_index_page(request):
+async def index_page_handler(request):
     async with aiofiles.open('index.html', mode='r') as index_file:
         index_contents = await index_file.read()
     return web.Response(text=index_contents, content_type='text/html')
@@ -53,8 +62,8 @@ async def handle_index_page(request):
 if __name__ == '__main__':
     app = web.Application()
     app.add_routes([
-        web.get('/', handle_index_page),
-        web.get('/smoke', uptime_handler),
-        web.get('/archive/{archive_hash}/', archivate),
+        web.get('/', index_page_handler),
+        web.get('/uptime', uptime_handler),
+        web.get('/archive/{archive_hash}/', archive_handler),
     ])
     web.run_app(app)
