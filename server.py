@@ -2,6 +2,7 @@ import asyncio
 import os
 import datetime
 import logging
+import signal
 
 import aiofiles
 from aiohttp import web
@@ -12,7 +13,6 @@ from middlewares import error_middleware
 
 CHUNK_SIZE = 2048
 BASE_PHOTOS_PATH = 'test_photos/'
-CMD = 'zip - *'
 INTERVAL_SECS = 1
 
 
@@ -35,10 +35,9 @@ async def archive_handler(request):
     photos_path = os.path.abspath(os.path.join(BASE_PHOTOS_PATH, archive_hash))
     if not os.path.exists(photos_path):
         raise HTTPNotFound
-    archive_process = await asyncio.create_subprocess_shell(
-        CMD,
-        stdout=asyncio.subprocess.PIPE,
-        cwd=photos_path
+    archive_process = await asyncio.create_subprocess_exec(
+        'zip', '-jr', '-', photos_path,
+        stdout=asyncio.subprocess.PIPE
     )
 
     response.headers['Content-Disposition'] = 'attachment; filename="archive.zip"'
@@ -51,18 +50,17 @@ async def archive_handler(request):
             await response.write(archive_chunk)
             if not archive_chunk:
                 break
-            # await asyncio.sleep(5)
+            await asyncio.sleep(3)
     except asyncio.CancelledError:
         logging.debug('Download was interrupted')
-        archive_process.terminate()
+        archive_process.kill()
         await archive_process.wait()
         logging.debug(f'Archive process with PID: {archive_process.pid} was stopped. '
                       f'Return code: {archive_process.returncode}')
-
         raise
     finally:
-        await archive_process.wait()
         response.force_close()
+
     return response
 
 
