@@ -1,3 +1,4 @@
+
 # Микросервис для скачивания файлов
 
 Микросервис помогает работе основного сайта, сделанного на CMS и обслуживает
@@ -22,16 +23,23 @@
 
 ## Как установить
 
-Для работы микросервиса нужен Python версии не ниже 3.6.
-
+Для работы микросервиса необходимо установить `docker`  и `docker-compose` не ниже следующих версий:
 ```bash
-pip install -r requirements.txt
+$ docker --version
+Docker version 17.03.2-ce, build f5ec1e2
+$ docker-compose --version
+docker-compose version 1.13.0, build 1719ceb
+```
+Затем клонируем репозиторий с GitHub:
+```bash
+$ git clone https://github.com/ligain/async-download-service.git
+$ cd async-download-service/
 ```
 
 ## Как запустить
 
 ```bash
-python server.py
+$ docker-compose up
 ```
 
 Сервер запустится на порту 8080, чтобы проверить его работу перейдите в браузере на страницу [http://127.0.0.1:8080/](http://127.0.0.1:8080/).
