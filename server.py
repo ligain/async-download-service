@@ -75,17 +75,18 @@ def get_args():
         '-l', '--log',
         help='Turn on logging',
         action='store_true',
-        default=False
+        default=os.getenv('LOG')
     )
     parser.add_argument(
         '-d', '--delay',
         help='Response delay in sec',
-        type=float
+        type=float,
+        default=os.getenv('DELAY')
     )
     parser.add_argument(
         '-p', '--photos-path',
         help='Base path to photos directory',
-        default='test_photos/',
+        default=os.getenv('BASE_PHOTOS_PATH', 'test_photos/'),
         dest='base_photos_path'
     )
     return parser.parse_args()
