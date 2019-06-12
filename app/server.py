@@ -62,7 +62,7 @@ async def archive_handler(request, delay=None, base_photos_path=None, chunk_size
 
 
 async def index_page_handler(request):
-    async with aiofiles.open('index.html', mode='r') as index_file:
+    async with aiofiles.open('templates/index.html', mode='r') as index_file:
         index_contents = await index_file.read()
     return web.Response(text=index_contents, content_type='text/html')
 

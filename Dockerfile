@@ -1,14 +1,10 @@
 FROM python:3.6-alpine
 
-RUN apk update \
-    && apk upgrade \
-    && apk add bash zip
+RUN apk add bash zip
 
 WORKDIR "/app"
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-
-COPY . .
 
 EXPOSE 8080
 
