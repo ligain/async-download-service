@@ -52,11 +52,14 @@ async def archive_handler(request, delay=None, base_photos_path=None, chunk_size
         logging.debug('Download was interrupted')
         archive_process.kill()
         await archive_process.wait()
-        logging.debug(f'Archive process with PID: {archive_process.pid} was stopped. '
+        logging.debug(f'Archive process with PID: {archive_process.pid} was killed. '
                       f'Return code: {archive_process.returncode}')
         raise
     finally:
         response.force_close()
+        if archive_process.returncode is None:
+            archive_process.kill()
+            logging.debug(f'Archive process with PID: {archive_process.pid} was killed')
 
     return response
 
